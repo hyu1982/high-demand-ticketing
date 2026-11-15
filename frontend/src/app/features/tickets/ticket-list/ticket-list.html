@@ -1,0 +1,154 @@
+<main class="home">
+  <header class="site-header">
+    <h1>High Demand Tickets</h1>
+    <p>Your destination for unforgettable experiences.</p>
+  </header>
+  <section class="welcome">
+    <h2>Find Your Next Adventure</h2>
+    <p>Browse available tickets and plan your next visit.</p>
+    <button type="button" (click)="logout()">Sign Out</button>
+  </section>
+
+
+<section class="tickets">
+  <form [formGroup]="searchForm" (ngSubmit)="onSearchSubmit()">
+  <label for="eventName">Event name</label>
+  <input
+    id="eventName"
+    type="text"
+    formControlName="eventName"
+    maxlength="100"
+  />
+
+  @if (
+    searchForm.controls.eventName.touched &&
+    searchForm.controls.eventName.hasError('maxlength')
+  ) {
+    <p>Event name cannot exceed 100 characters.</p>
+  }
+
+  <label for="status">Ticket status</label>
+  <select id="status" formControlName="status">
+    <option value="">All statuses</option>
+    <option value="PENDING">Pending</option>
+    <option value="SOLD">Sold</option>
+    <option value="CANCELLED">Cancelled</option>
+  </select>
+
+  <label for="maxPrice">Maximum price</label>
+
+<input
+  id="maxPrice"
+  type="number"
+  formControlName="maxPrice"
+  min="0"
+  step="0.01"
+  [attr.aria-invalid]="
+    searchForm.controls.maxPrice.invalid &&
+    searchForm.controls.maxPrice.touched
+  "
+  [attr.aria-describedby]="
+    searchForm.controls.maxPrice.touched &&
+    searchForm.controls.maxPrice.hasError('min')
+      ? 'maxPriceError'
+      : null
+  "
+/>
+
+@if (
+  searchForm.controls.maxPrice.touched &&
+  searchForm.controls.maxPrice.hasError('min')
+) {
+  <p id="maxPriceError" role="alert">
+    Maximum price cannot be negative.
+  </p>
+}
+
+  <!--<button type="submit" [disabled]="loading() || searchForm.invalid">Search tickets</button>-->
+  <button type="submit" [disabled]="searchForm.invalid">Search tickets</button>
+  <button type="button" [disabled]="loading()" (click)="clearFilters()">Clear Filters</button>
+</form>
+
+  <h2>Available Tickets</h2>
+ 
+
+@let purchase = purchaseState();
+
+@if (purchase.status === 'purchasing') {
+  <p role="status">Your purchase is being processed. Please wait.</p>
+} @else if (purchase.status === 'success') {
+  <p class="success" role="status">
+    Ticket purchased successfully. Order ID: {{ purchase.orderId }}
+  </p>
+} @else if (purchase.status === 'failed') {
+  <p class="error" role="alert">{{ purchase.message }}</p>
+} @else if (purchase.status === 'unknown') {
+  <p class="error" role="alert">{{ purchase.message }}</p>
+
+  <button type="button" (click)="retryUnknownPurchase()">
+    Retry purchase request
+  </button>
+}
+
+
+
+  @if (loading()) {
+    <p>Loading tickets...</p>
+  } @else if (error()) {
+    <p class="error">{{ error() }}</p>
+  } @else if (tickets().length === 0) {
+    <p>No tickets were found.</p>
+  } @else {
+    <div class="ticket-list">
+      @for (ticket of tickets(); track ticket.id) {
+
+        <article class="ticket-card">
+          <h3>{{ ticket.eventName }}</h3>
+          <p>Ticket number: {{ ticket.ticketNumber }}</p>
+          <p>Status: {{ ticket.status }}</p>
+          <p>Price: {{ ticket.price | currency: 'USD' }}</p>
+        </article>
+
+        @if (ticket.status === 'PENDING') {
+        <button
+          type="button"
+          [disabled]="purchasingTicketIds().includes(ticket.id)"
+          (click)="purchaseTicket(ticket.id)"
+        >
+          @if (purchasingTicketIds().includes(ticket.id)) {
+            Purchasing...
+          } @else {
+            Purchase {{ticket.eventName}}<br />{{ ticket.price | currency: 'USD' }}
+          }
+        </button>
+      }
+      }
+    </div>
+
+    @if (totalPages() > 0) {
+      <nav class="pagination" aria-label="Ticket pages">
+        <button
+          type="button"
+          (click)="previousPage()"
+          [disabled]="currentPage() === 0 || loading()"
+        >
+          Previous
+        </button>
+
+        <span>
+          Page {{ currentPage() + 1 }} of {{ totalPages() }}
+          ({{ totalElements() }} tickets)
+        </span>
+
+        <button
+          type="button"
+          (click)="nextPage()"
+          [disabled]="currentPage() + 1 >= totalPages() || loading()"
+        >
+          Next
+        </button>
+      </nav>
+    }
+  }
+</section>
+

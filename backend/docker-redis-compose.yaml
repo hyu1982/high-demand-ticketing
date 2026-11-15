@@ -1,0 +1,7 @@
+services:
+  redis:
+    image: redis
+    container_name: highdemand-redis
+    command: ["redis-server", "--port", "6380"]
+    ports:
+      - "6380:6380"

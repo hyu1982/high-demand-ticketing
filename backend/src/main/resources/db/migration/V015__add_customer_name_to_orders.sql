@@ -1,0 +1,2 @@
+ALTER TABLE Orders
+    ADD CustomerName NVARCHAR(200) NULL;

@@ -1,0 +1,18 @@
+CREATE TABLE Users (
+   Id BIGINT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+
+   Username NVARCHAR(100) NOT NULL,
+
+   Password NVARCHAR(255) NOT NULL,
+
+   Email NVARCHAR(255) NOT NULL,
+
+   Role NVARCHAR(50) NOT NULL,
+
+   Enabled BIT NOT NULL
+       CONSTRAINT DF_Users_Enabled
+       DEFAULT 1,
+
+   CONSTRAINT UQ_Users_Username
+       UNIQUE (Username)
+);

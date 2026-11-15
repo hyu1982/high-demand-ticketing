@@ -1,0 +1,156 @@
+
+<section>
+  <h1>High DemandTickets — Signal Forms</h1>
+
+  <p>
+    This page uses Angular Signal Forms for search state and validation.
+  </p>
+
+  <form novalidate (submit)="onSearch($event)">
+    <div>
+      <label for="signal-status">Status</label>
+      <select
+        id="signal-status"
+        [formField]="searchForm.status">
+        <option value="">All statuses</option>
+        <option value="AVAILABLE">Available</option>
+        <option value="RESERVED">Reserved</option>
+        <option value="SOLD">Sold</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+    </div>
+
+    <div>
+      <label for="signal-event-name">Event name</label>
+      <input
+        id="signal-event-name"
+        type="text"
+        [formField]="searchForm.eventName"
+        placeholder="Search event name" />
+    </div>
+
+    <div>
+      <label for="signal-max-price">Maximum price</label>
+      <input
+        id="signal-max-price"
+        type="number"
+        step="0.01"
+        [formField]="searchForm.maxPrice"
+        placeholder="No maximum" />
+
+      @if (
+        searchForm.maxPrice().touched() &&
+        searchForm.maxPrice().invalid()
+      ) {
+        @for (
+          validationError of searchForm.maxPrice().errors();
+          track validationError.kind
+        ) {
+          <p role="alert">
+            {{ validationError.message }}
+          </p>
+        }
+      }
+    </div>
+
+    <button type="submit" [disabled]="loading()">
+      Search
+    </button>
+
+    <button
+      type="button"
+      (click)="clearFilters()"
+      [disabled]="loading()">
+      Clear filters
+    </button>
+  </form>
+
+  @if (loading()) {
+    <p role="status">Loading high demand tickets...</p>
+  }
+
+  @if (error(); as message) {
+    <p role="alert">{{ message }}</p>
+  }
+
+  @if (!loading() && !error() && tickets().length === 0) {
+    <p>No tickets found.</p>
+  }
+
+  @for (ticket of tickets(); track ticket.id) {
+    @if (purchaseState(); as state) {
+  @if (state.status === 'purchasing') {
+    <p role="status">
+      Processing purchase for ticket {{ state.ticketId }}...
+    </p>
+  }
+
+  @if (state.status === 'success') {
+    <p role="status">
+      Purchase successful. Order ID: {{ state.orderId }}
+    </p>
+  }
+
+  @if (state.status === 'failed') {
+    <p role="alert">{{ state.message }}</p>
+  }
+
+  @if (state.status === 'unknown') {
+    <p role="alert">{{ state.message }}</p>
+
+    <button
+      type="button"
+      (click)="retryUnknownPurchase()"
+      [disabled]="loading()">
+      Retry purchase safely
+    </button>
+  }
+}
+
+    <article>
+      <h2>{{ ticket.eventName }}</h2>
+      <p>Ticket number: {{ ticket.ticketNumber }}</p>
+      <p>Status: {{ ticket.status }}</p>
+      <p>Price: {{ ticket.price | currency }}</p>
+       <button
+    type="button"
+    (click)="purchaseTicket(ticket.id)"
+    [disabled]="
+      loading() ||
+      ticket.status !== 'PENDING' ||
+      purchasingTicketIds().has(ticket.id)
+    ">
+    @if (purchasingTicketIds().has(ticket.id)) {
+      Purchasing...
+    } @else {
+      Purchase ticket
+    }
+  </button>
+    </article>
+  }
+
+  @if (totalPages() > 1) {
+    <nav aria-label="Ticket pagination">
+      <button
+        type="button"
+        (click)="goToPage(currentPage() - 1)"
+        [disabled]="loading() || currentPage() === 0">
+        Previous
+      </button>
+
+      <span>
+        Page {{ currentPage() + 1 }} of {{ totalPages() }}
+        ({{ totalElements() }} tickets)
+      </span>
+
+      <button
+        type="button"
+        (click)="goToPage(currentPage() + 1)"
+        [disabled]="
+          loading() || currentPage() >= totalPages() - 1
+        ">
+        Next
+      </button>
+    </nav>
+  }
+</section>

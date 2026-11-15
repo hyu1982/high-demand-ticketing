@@ -1,0 +1,38 @@
+# Java / Maven
+**/target/
+**/*.class
+**/*.jar
+**/hs_err_pid*
+
+# IntelliJ
+**/.idea/
+**/*.iml
+
+# VS Code
+**/.vscode/
+
+# Node
+**/node_modules/
+**/dist/
+**/.angular/
+**/coverage/
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+**/application-local.properties
+**/application-secret.properties
+
+# Certificates and private keys
+*.p12
+*.pfx
+*.key
+*.pem
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
